@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="280" viewBox="0 0 560 280" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0%" stop-color="#eef2ff"/>
+      <stop offset="100%" stop-color="#f0f9ff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" x2="1">
+      <stop offset="0%" stop-color="#e6f7fa"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="280" rx="16" fill="url(#g1)" />
+  <g opacity="0.9">
+    <circle cx="90" cy="70" r="36" fill="#e0f2fe" />
+    <rect x="170" y="36" width="120" height="64" rx="10" fill="#f1f5f9" />
+    <circle cx="360" cy="90" r="48" fill="#eef2ff" />
+    <rect x="420" y="24" width="100" height="56" rx="10" fill="#eff6ff" />
+  </g>
+  <g transform="translate(24,180)" opacity="0.6">
+    <path d="M0 32c48-24 160-40 248-16s144 48 232 16v24H0V32z" fill="#f8fafc"/>
+  </g>
+  <g transform="translate(28,22)" fill="#0b1220" opacity="0.06">
+    <rect x="0" y="0" width="220" height="6" rx="3" />
+    <rect x="0" y="14" width="160" height="6" rx="3" />
+    <rect x="0" y="28" width="120" height="6" rx="3" />
+  </g>
+</svg>
