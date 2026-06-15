@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
 const eventOptions = [
@@ -14,10 +14,31 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(30);
+  const refreshIntervalRef = useRef(null);
 
   useEffect(() => {
     fetchDashboard();
   }, []);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      refreshIntervalRef.current = setInterval(() => {
+        fetchDashboard();
+      }, refreshInterval * 1000);
+    } else {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [autoRefresh, refreshInterval]);
 
   const fetchDashboard = async () => {
     setLoading(true);
@@ -62,7 +83,45 @@ function App() {
       await fetchDashboard();
     } catch (err) {
       setError(err.message);
+      console.error("Event submission error:", err);
     }
+  };
+
+  const exportCSV = () => {
+    if (events.length === 0) {
+      setError("No events to export");
+      return;
+    }
+
+    const headers = ["ID", "Type", "Metadata", "Created At"];
+    const rows = events.map((event) => [
+      event.id,
+      event.eventType,
+      JSON.stringify(event.metadata || {}),
+      event.createdAt,
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row
+          .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+          .join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `analytics-events-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const formatMetadata = (metadata) => {
@@ -173,13 +232,41 @@ function App() {
             <h2>Analytics event simulator</h2>
             <p>Generate sample analytics events and observe the backend capture workflow in real time.</p>
           </div>
-          <button className="ghost-button" onClick={fetchDashboard}>
-            Refresh metrics
-          </button>
+          <div className="header-controls">
+            <button className="ghost-button" onClick={fetchDashboard} disabled={loading}>
+              {loading ? "Refreshing…" : "Refresh metrics"}
+            </button>
+            <button className="ghost-button" onClick={exportCSV} disabled={events.length === 0}>
+              📥 Export CSV
+            </button>
+          </div>
         </div>
+
+        <div className="auto-refresh-controls">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+            />
+            Auto-refresh every{" "}
+            <select
+              value={refreshInterval}
+              onChange={(e) => setRefreshInterval(Number(e.target.value))}
+              disabled={!autoRefresh}
+              className="interval-select"
+            >
+              <option value={5}>5 seconds</option>
+              <option value={10}>10 seconds</option>
+              <option value={30}>30 seconds</option>
+              <option value={60}>1 minute</option>
+            </select>
+          </label>
+        </div>
+
         <div className="button-grid">
           {eventOptions.map((option) => (
-            <button key={option.value} onClick={() => sendEvent(option.value)}>
+            <button key={option.value} onClick={() => sendEvent(option.value)} disabled={loading}>
               Record {option.label}
             </button>
           ))}
